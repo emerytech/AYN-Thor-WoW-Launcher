@@ -25,12 +25,12 @@ The GitHub edition remains the `modern` flavor; do not upload that APK to Play.
 
 ## Submission gates (not yet a Play submission)
 
-1. Verify the final bundle on a 16 KB Android environment. ELF alignment alone is not runtime proof.
+1. Initial launch and scoped dummy-folder import passed on an Android 15 ARM64 emulator with PAGE_SIZE=16384. Full game/rendering execution on a compatible 16 KB device remains unverified.
 2. Exercise import, first launch, sign-in, saved-login fill, controller input and large installs on a physical device.
 3. Resolve rights/branding for the chosen name, compatibility wording and all bundled assets/components.
    The chosen name deliberately references the existing game. An original icon does not establish permission.
 4. Review native Wine/game execution against Play executable-code policy; the interpreter exception must not be assumed to cover this runtime.
-5. Finalize and host privacy policy with real developer contact information. Complete Data safety and content rating based on actual game-client network/audio behavior.
+5. Privacy policy is hosted at https://emerytech.github.io/AYN-Thor-WoW-Launcher/play-store/privacy-policy.html with hello@ets3d.com. Complete Data safety and content rating based on actual game-client network/audio behavior.
 6. Enroll package and upload key in the user's Play Console / Play App Signing. Determine applicable testing-track requirements from the account.
 7. Use real screenshots from this Play edition. The GitHub feature-tour GIF is not a substitute for store screenshots.
 

@@ -122,6 +122,8 @@ android {
     productFlavors.create("play") {
         dimension = "androidApi"
         applicationId = "com.emerytech.handheldruntime"
+        versionCode = 285
+        versionName = "2.7.1-play.1"
         minSdk = 29
         targetSdk = 36
         ndk.abiFilters += "arm64-v8a"

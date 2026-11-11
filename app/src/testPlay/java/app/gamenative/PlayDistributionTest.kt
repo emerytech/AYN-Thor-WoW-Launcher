@@ -27,6 +27,11 @@ class PlayDistributionTest {
         assertEquals("com.emerytech.handheldruntime", BuildConfig.APPLICATION_ID)
     }
 
+    @Test @Config(qualifiers = "es") fun chosenTitleIsPreservedInOtherLocales() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        assertEquals("WOW this game is FOREVER", app.packageManager.getApplicationLabel(app.applicationInfo).toString())
+    }
+
     @Test fun appAndGameUpdateChecksDoNotContactRemoteServers() = runBlocking {
         assertNull(AppUpdater.check())
         assertNull(WowClientDownloader.checkVersion(File("/missing")))

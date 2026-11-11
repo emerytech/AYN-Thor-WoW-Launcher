@@ -18,6 +18,8 @@ Features:
 Game files and Lossless.dll are not included. Game access and compatibility vary.
 Importing copies the selected installation and requires additional free space.
 Uninstalling removes the imported copy and app settings. Android 10+ and ARM64 required.
+The bundled graphics-driver paths require compatible Qualcomm Adreno hardware.
+AYN Thor is the tested handheld; other hardware is not verified.
 
 Unofficial community project. Not affiliated with Blizzard Entertainment,
 Lossless Scaling or the device manufacturer. This statement does not replace any

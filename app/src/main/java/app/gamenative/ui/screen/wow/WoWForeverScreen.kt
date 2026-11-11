@@ -483,7 +483,7 @@ fun WoWForeverScreen(
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CheckItem(
-                            label = if (files.exeExists) "ARM64 Binary (${files.exeName})" else "ARM64 Binary (downloads on Play)",
+                            label = if (files.exeExists) "ARM64 Binary (${files.exeName})" else if (app.gamenative.BuildConfig.PLAY_STORE) "ARM64 game executable (import required)" else "ARM64 Binary (downloads on Play)",
                             ready = files.exeExists,
                             warning = !files.exeExists,
                         )
