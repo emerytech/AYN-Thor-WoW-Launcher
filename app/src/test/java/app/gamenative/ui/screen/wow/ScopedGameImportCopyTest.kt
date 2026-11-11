@@ -13,6 +13,13 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +34,10 @@ class ScopedGameImportCopyTest {
         val resolver = mockk<ContentResolver>()
         every { context.getExternalFilesDir(null) } returns root
         every { context.contentResolver } returns resolver
+        every { context.applicationContext } returns context
+        every { context.getSharedPreferences(any(), any()) } answers {
+            org.robolectric.RuntimeEnvironment.getApplication().getSharedPreferences(firstArg(), secondArg())
+        }
         every { resolver.query(any(), any(), any(), any(), any()) } answers {
             val uri = firstArg<Uri>()
             val columns = arrayOf("document_id", "_display_name", "mime_type")
@@ -68,4 +79,36 @@ class ScopedGameImportCopyTest {
             assertEquals(listOf("previous"), File(root, "games").listFiles()!!.map { it.name })
         } finally { root.deleteRecursively() }
     }
+
+    @Test fun importSurvivesLossOfScreenObserverAndRejectsDuplicateStart() = runBlocking {
+        val root = Files.createTempDirectory("scoped-retained").toFile()
+        val entered = CountDownLatch(1)
+        val resume = CountDownLatch(1)
+        val app = context(root, false)
+        val resolver = app.contentResolver
+        every { resolver.openInputStream(any()) } answers {
+            entered.countDown()
+            check(resume.await(10, TimeUnit.SECONDS))
+            ByteArrayInputStream("fixture".toByteArray())
+        }
+        try {
+            val observer = launch(start = CoroutineStart.UNDISPATCHED) { GameFolderImport.state.collect {} }
+            GameFolderImport.start(app, Uri.parse("content://fixture/tree/root"), WowFlavor.FOREVER)
+            val didEnter = entered.await(10, TimeUnit.SECONDS)
+            assertTrue("Import state: ${GameFolderImport.state.value}", didEnter)
+            observer.cancel()
+            assertTrue(GameFolderImport.state.value.running)
+            GameFolderImport.start(app, Uri.parse("content://fixture/tree/other"), WowFlavor.FOREVER)
+            resume.countDown()
+            val result = withTimeout(10000) { GameFolderImport.state.first { !it.running } }
+            assertNull(result.error)
+            assertTrue(File(result.path!!, "Data/data.bin").exists())
+            assertEquals(1, File(root, "games").listFiles()!!.size)
+            assertEquals(result.path, GamePath.load(app))
+        } finally {
+            resume.countDown()
+            root.deleteRecursively()
+        }
+    }
+
 }

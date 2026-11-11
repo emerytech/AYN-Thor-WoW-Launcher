@@ -17,12 +17,16 @@ internal object ScopedGameImport {
         }
     }
 
-    suspend fun copy(context: Context, tree: Uri): File {
+    suspend fun copy(context: Context, tree: Uri, progress: (Long) -> Unit = {}): File {
+        var copied = 0L
         val base = File(context.getExternalFilesDir(null) ?: context.filesDir, "games").apply { check(isDirectory || mkdirs()) }
         val stage = File(base, ".import-${UUID.randomUUID()}").apply { check(mkdir()) }
         val destination = File(base, "game-${UUID.randomUUID()}")
         try {
-            copyDirectory(context, tree, DocumentsContract.getTreeDocumentId(tree), stage)
+            copyDirectory(context, tree, DocumentsContract.getTreeDocumentId(tree), stage) { count ->
+                copied += count
+                progress(copied)
+            }
             check(File(stage, ".build.info").isFile && File(stage, "Data").isDirectory) {
                 "Select the installation folder containing .build.info and Data."
             }
@@ -34,7 +38,7 @@ internal object ScopedGameImport {
         }
     }
 
-    private suspend fun copyDirectory(context: Context, tree: Uri, id: String, destination: File) {
+    private suspend fun copyDirectory(context: Context, tree: Uri, id: String, destination: File, progress: (Long) -> Unit) {
         val uri = DocumentsContract.buildChildDocumentsUriUsingTree(tree, id)
         val columns = arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE)
         val cursor = checkNotNull(context.contentResolver.query(uri, columns, null, null, null)) { "Folder is unavailable" }
@@ -47,7 +51,7 @@ internal object ScopedGameImport {
                 val target = safeChild(destination, name)
                 if (it.getString(2) == DocumentsContract.Document.MIME_TYPE_DIR) {
                     check(target.mkdir()) { "Duplicate or unavailable folder" }
-                    copyDirectory(context, tree, childId, target)
+                    copyDirectory(context, tree, childId, target, progress)
                 } else {
                     check(!target.exists()) { "Duplicate file name" }
                     val document = DocumentsContract.buildDocumentUriUsingTree(tree, childId)
@@ -59,6 +63,7 @@ internal object ScopedGameImport {
                                 val count = input.read(buffer)
                                 if (count < 0) break
                                 output.write(buffer, 0, count)
+                                progress(count.toLong())
                             }
                         }
                     }

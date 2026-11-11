@@ -103,7 +103,9 @@ fun WoWForeverScreen(
     var forceGamepadUi by remember { mutableStateOf(ButtonPad.forceGamepadUi(context, flavor)) }
     var gamePath by remember { mutableStateOf(GamePath.load(context)) }
     var files by remember { mutableStateOf(GamePath.Status()) }
-    var isLaunching by remember { mutableStateOf(false) }
+    var launchInProgress by remember { mutableStateOf(false) }
+    val importState by GameFolderImport.state.collectAsState()
+    val isLaunching = launchInProgress || importState.running
     var launchJob by remember { mutableStateOf<Job?>(null) }
     var hasSavedLogin by remember { mutableStateOf(BattleNetSignIn.hasSavedLogin(context)) }
     var autoLogin by remember { mutableStateOf(BattleNetSignIn.autoLoginEnabled(context)) }
@@ -218,7 +220,7 @@ fun WoWForeverScreen(
     fun resetLaunch() {
         launchJob?.cancel()
         launchJob = null
-        isLaunching = false
+        launchInProgress = false
         statusText = READY_STATUS
     }
 
@@ -232,7 +234,7 @@ fun WoWForeverScreen(
             showStoragePermissionDialog = true
             return
         }
-        isLaunching = true
+        launchInProgress = true
         errorMessage = null
         statusText = "Preparing components..."
 
@@ -250,21 +252,21 @@ fun WoWForeverScreen(
             } catch (e: CancellationException) {
                 throw e
             } catch (_: StorageAccessDeniedException) {
-                isLaunching = false
+                launchInProgress = false
                 statusText = READY_STATUS
                 denyStorageAccess()
             } catch (e: Exception) {
                 Timber.e(e, "Error launching WoW Forever")
                 errorMessage = e.message ?: "Launch failed"
                 statusText = "Launch failed"
-                isLaunching = false
+                launchInProgress = false
             }
         }
     }
 
     LifecycleResumeEffect(gamePath) {
         checkFiles()
-        isLaunching = false
+        launchInProgress = false
         statusText = READY_STATUS
         if (versionStatus == null && !WoWLauncherState.shouldAutoLaunch) {
             checkVersionStatus()
@@ -295,19 +297,7 @@ fun WoWForeverScreen(
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (app.gamenative.BuildConfig.PLAY_STORE) {
             if (uri == null) return@rememberLauncherForActivityResult
-            isLaunching = true
-            statusText = "Importing game folder into app storage..."
-            scope.launch {
-                try {
-                    val root = withContext(Dispatchers.IO) { ScopedGameImport.copy(context, uri) }
-                    gamePath = root.absolutePath
-                    GamePath.save(context, gamePath)
-                    errorMessage = null
-                    checkFiles()
-                } catch (e: kotlinx.coroutines.CancellationException) { throw e }
-                catch (e: Exception) { errorMessage = "Import failed: ${e.message}" }
-                finally { isLaunching = false; statusText = READY_STATUS }
-            }
+            GameFolderImport.start(context, uri, flavor)
             return@rememberLauncherForActivityResult
         }
         val path = StorageUtils.getPathFromTreeUri(context, uri) ?: return@rememberLauncherForActivityResult
@@ -325,6 +315,14 @@ fun WoWForeverScreen(
             showStoragePermissionDialog = true
         } else if (ok) {
             checkVersionStatus()
+        }
+    }
+
+    LaunchedEffect(importState.path) {
+        importState.path?.let {
+            gamePath = GamePath.load(context)
+            errorMessage = null
+            checkFiles()
         }
     }
 
@@ -530,7 +528,7 @@ fun WoWForeverScreen(
 
                     Text(text = "Target Path: $gamePath", fontSize = 11.sp, color = WowSubtle, maxLines = 2)
 
-                    errorMessage?.let {
+                    (importState.error ?: errorMessage)?.let {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(text = "Error: $it", fontSize = 12.sp, color = WowError, fontWeight = FontWeight.Medium)
                     }
@@ -612,6 +610,7 @@ fun WoWForeverScreen(
                     Text(
                         text = when {
                             isUpdating -> updateStatusText
+                            importState.running -> "Importing game folder: ${importState.bytes / (1024 * 1024)} MB copied. Keep the app open."
                             isLaunching -> statusText
                             else -> "Checking for game updates..."
                         },
@@ -996,8 +995,8 @@ object GamePath {
         return (usable ?: saved ?: defaultPath).absolutePath
     }
 
-    fun save(context: Context, path: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(pathKey(), path).apply()
+    fun save(context: Context, path: String, flavor: WowFlavor = WowFlavor.current) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(pathKey(flavor), path).apply()
     }
 
     fun isReady(context: Context, path: String = load(context)): Boolean =

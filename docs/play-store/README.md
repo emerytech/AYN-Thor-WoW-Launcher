@@ -18,6 +18,9 @@ The GitHub edition remains the `modern` flavor; do not upload that APK to Play.
 - Android folder picker copies a selected installation into app-specific external storage.
   Earlier imports and original source files remain untouched. Staging is cleaned on failure.
   Temporary plaintext `login.txt` files are excluded from import.
+  Large copies use an application-owned job so recreating the launcher screen does not
+  cancel them; copied megabytes are shown. Keep the app open. Process-death resume
+  is not implemented.
 - No all-files access, legacy shared-storage permissions, APK installation permission or READ_LOGS.
 - GitHub app updater disabled at its entry points. Automatic game version checks/downloads disabled.
   Users import complete authorized files and updated installations themselves.
@@ -34,6 +37,7 @@ The GitHub edition remains the `modern` flavor; do not upload that APK to Play.
 4. Review native Wine/game execution against Play executable-code policy; the interpreter exception must not be assumed to cover this runtime.
 5. Privacy policy is hosted at https://emerytech.github.io/AYN-Thor-WoW-Launcher/play-store/privacy-policy.html with hello@ets3d.com. Complete Data safety and content rating based on actual game-client network/audio behavior.
 6. Enroll package and upload key in the user's Play Console / Play App Signing. Determine applicable testing-track requirements from the account.
-7. Use real screenshots from this Play edition. The GitHub feature-tour GIF is not a substitute for store screenshots.
+7. Full `lintPlayRelease` currently reports 11 existing issues: TV feature declarations, API 30 display calls with minSdk 29, native-wrapper constants and a missing saved-login translation. Release vital lint and packaging pass; full lint is not clear.
+8. Use real screenshots from this Play edition. The GitHub feature-tour GIF is not a substitute for store screenshots.
 
 No approval or legal clearance is implied by producing an AAB. No Play upload is authorized by this preparation document.
