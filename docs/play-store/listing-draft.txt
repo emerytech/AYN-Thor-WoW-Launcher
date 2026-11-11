@@ -1,4 +1,8 @@
 Title: WOW this game is FOREVER
+Developer: ETS3D LLC / Emery Tech Solutions
+Support email: hello@ets3d.com
+Website: https://ets3d.com
+Privacy policy: https://emerytech.github.io/AYN-Thor-WoW-Launcher/play-store/privacy-policy.html
 Short description: Controller-friendly launcher for your compatible ARM64 game installation.
 
 Bring your own compatible Windows ARM64 game files to an Android handheld.

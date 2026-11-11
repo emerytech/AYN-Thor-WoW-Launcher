@@ -1,5 +1,7 @@
 # Play edition preparation
 
+Public developer/support contact: **ETS3D LLC / Emery Tech Solutions**, **hello@ets3d.com**, verified against https://ets3d.com/.
+
 Chosen listing name: **WOW this game is FOREVER**. Package: `com.emerytech.handheldruntime`.
 This is a separate installation from the GitHub edition and does not inherit its
 saved credentials, imported DLL or game settings.

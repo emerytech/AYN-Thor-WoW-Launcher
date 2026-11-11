@@ -1,8 +1,9 @@
 # Privacy policy draft — WOW this game is FOREVER
 
 This draft must be reviewed and published at a public URL before submission.
-Developer contact must match the final Play listing; no personal contact details
-from a user's game account should be used here.
+Developer: **ETS3D LLC / Emery Tech Solutions**.
+Support and privacy contact: **hello@ets3d.com** (the public ETS3D contact).
+This is separate from any user's game-account email or credentials.
 
 The launcher copies only a game folder explicitly selected with Android's picker
 into app storage. Imported games, settings and optional frame-generation DLL stay
