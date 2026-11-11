@@ -178,6 +178,7 @@ fun WoWForeverScreen(
     }
 
     suspend fun fetchVersionStatus() {
+        if (app.gamenative.BuildConfig.PLAY_STORE) return
         isCheckingVersion = true
         versionStatus = withContext(Dispatchers.IO) { WowClientDownloader.checkVersion(File(gamePath)) }
         isCheckingVersion = false
@@ -292,6 +293,23 @@ fun WoWForeverScreen(
     }
 
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (app.gamenative.BuildConfig.PLAY_STORE) {
+            if (uri == null) return@rememberLauncherForActivityResult
+            isLaunching = true
+            statusText = "Importing game folder into app storage..."
+            scope.launch {
+                try {
+                    val root = withContext(Dispatchers.IO) { ScopedGameImport.copy(context, uri) }
+                    gamePath = root.absolutePath
+                    GamePath.save(context, gamePath)
+                    errorMessage = null
+                    checkFiles()
+                } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                catch (e: Exception) { errorMessage = "Import failed: ${e.message}" }
+                finally { isLaunching = false; statusText = READY_STATUS }
+            }
+            return@rememberLauncherForActivityResult
+        }
         val path = StorageUtils.getPathFromTreeUri(context, uri) ?: return@rememberLauncherForActivityResult
         val root = GamePath.findGameRoot(File(path))
         if (root == null) {
@@ -399,7 +417,7 @@ fun WoWForeverScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "WORLD OF WARCRAFT",
+                    text = if (app.gamenative.BuildConfig.PLAY_STORE) "WOW this game is FOREVER" else "WORLD OF WARCRAFT",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Serif,
@@ -407,7 +425,7 @@ fun WoWForeverScreen(
                     color = WowTitle,
                 )
                 Text(
-                    text = flavor.subtitle,
+                    text = if (app.gamenative.BuildConfig.PLAY_STORE) "IMPORT YOUR OWN GAME FILES" else flavor.subtitle,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Serif,
@@ -418,6 +436,10 @@ fun WoWForeverScreen(
                 WowDivider()
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = "${gpu.edition} Edition", fontSize = 11.sp, color = WowSubtle)
+                if (app.gamenative.BuildConfig.PLAY_STORE) Text(
+                    "Import a complete game installation you have permission to use. The folder is copied into this app's storage, so keep enough free space. Uninstalling this app removes its imported copy. App updates come through Google Play.",
+                    color = WowCream, fontSize = 13.sp,
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 FlavorSelector(selected = flavor, enabled = !isLaunching && !isUpdating, onSelect = { selectFlavor(it) })
                 LaunchSwitches(
@@ -470,7 +492,7 @@ fun WoWForeverScreen(
                             label = if (files.isWrongGame) "Install Info ($BUILD_INFO - requires $TARGET_PRODUCT)" else "Install Info ($BUILD_INFO)",
                             ready = files.buildInfoExists && !files.isWrongGame
                         )
-                        CheckItem(label = "All Files Access Permission", ready = files.hasStorageAccess)
+                        CheckItem(label = if (app.gamenative.BuildConfig.PLAY_STORE) "Game folder access" else "All Files Access Permission", ready = files.hasStorageAccess)
                         CheckItem(
                             label = when {
                                 !autoLogin -> "Battle.net Login (Auto-login off, sign in by hand)"
@@ -607,7 +629,7 @@ fun WoWForeverScreen(
                         ) {
                             Icon(Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(20.dp), tint = WowGold)
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text("LOCATE GAME FILES", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = WowGold)
+                            Text(if (app.gamenative.BuildConfig.PLAY_STORE) "IMPORT GAME FOLDER" else "LOCATE GAME FILES", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = WowGold)
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                     }
@@ -664,7 +686,7 @@ fun WoWForeverScreen(
                         checkAppUpdate(manual = true)
                     }
                     if (!filesMissing) {
-                        LinkButton("Change Location", Icons.Default.FolderOpen, enabled = !busy) { folderPicker.launch(null) }
+                        LinkButton(if (app.gamenative.BuildConfig.PLAY_STORE) "Import game folder" else "Change Location", Icons.Default.FolderOpen, enabled = !busy) { folderPicker.launch(null) }
                     }
                     if (autoLogin) {
                         LinkButton(
@@ -705,6 +727,7 @@ fun WoWForeverScreen(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            if (!app.gamenative.BuildConfig.PLAY_STORE) {
             Text(
                 text = if (betaUpdates) "Beta app updates: On (tap to turn off)" else "Beta app updates: Off (tap to turn on)",
                 fontSize = 11.sp,
@@ -734,6 +757,7 @@ fun WoWForeverScreen(
                     }
                     .padding(vertical = 8.dp),
             )
+            }
             Text(
                 text = "Region: ${region.name} (tap to change)",
                 fontSize = 11.sp,
@@ -961,6 +985,11 @@ object GamePath {
         WowFlavor.load(context)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val saved = prefs.getString(pathKey(), null)?.let(::File)
+        if (app.gamenative.BuildConfig.PLAY_STORE) {
+            val base = File(context.getExternalFilesDir(null) ?: context.filesDir, "games")
+            return saved?.takeIf { it.canonicalPath.startsWith(base.canonicalPath + File.separator) }?.absolutePath
+                ?: File(base, WowFlavor.current.name.lowercase()).absolutePath
+        }
         // A single Battle.net-style folder can hold several products, so the other flavors' folders are candidates too.
         val others = WowFlavor.entries.mapNotNull { prefs.getString(pathKey(it), null)?.let(::File) }
         val usable = (listOfNotNull(saved, defaultPath) + others).firstOrNull { productOf(it) == TARGET_PRODUCT }
@@ -1277,6 +1306,7 @@ private fun prepareLaunch(context: Context, gameRoot: File, gpu: GpuProfile, onS
         BattleNetSignIn.removeLoginFile(gameRoot)
     }
     if (!flavor.exeFile(gameRoot).exists()) {
+        check(!app.gamenative.BuildConfig.PLAY_STORE) { "Import the complete ARM64 game installation first." }
         try {
             WowClientDownloader.download(gameRoot, onStatus)
         } catch (e: Exception) {
@@ -1326,7 +1356,7 @@ private fun containerConfig(gameRoot: File, gpu: GpuProfile, exeName: String, sc
         put("wineVersion", "$PROTON_VERSION-1")
         put("containerVariant", "bionic")
         put("fexcoreVersion", "2609-0")
-        put("drives", "D:/storage/emulated/0/DownloadE:/data/data/app.aynthorwow/storageG:${gameRoot.path}")
+        put("drives", "D:${if (app.gamenative.BuildConfig.PLAY_STORE) gameRoot.path else "/storage/emulated/0/Download"}E:/data/data/${app.gamenative.BuildConfig.APPLICATION_ID}/storageG:${gameRoot.path}")
         put("executablePath", "G:\\$FLAVOR_DIR\\$exeName")
         put("execArgs", "-d3d11")
         put("showFPS", true)

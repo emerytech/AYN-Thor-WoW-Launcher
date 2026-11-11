@@ -68,7 +68,7 @@ internal fun FrameGenerationPanel(flavor: WowFlavor, enabled: Boolean) {
             OutlinedButton(onClick = { picker.launch(arrayOf("*/*")) }, enabled = enabled && !busy) {
                 Text(if (imported) "Replace DLL" else "Import DLL")
             }
-            OutlinedButton(
+            if (!app.gamenative.BuildConfig.PLAY_STORE) OutlinedButton(
                 onClick = {
                     importDll {
                         val root = Environment.getExternalStorageDirectory()

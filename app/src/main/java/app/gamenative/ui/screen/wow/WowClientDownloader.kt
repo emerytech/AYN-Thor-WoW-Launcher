@@ -48,6 +48,7 @@ object WowClientDownloader {
         runCatching { activeBuild(buildInfo) }.getOrNull()
 
     fun checkVersion(gameRoot: File): VersionCheckResult? {
+        if (app.gamenative.BuildConfig.PLAY_STORE) return null
         val row = runCatching { activeBuild(File(gameRoot, BUILD_INFO)) }.getOrElse {
             Timber.w(it, "checkVersion: no readable $BUILD_INFO in $gameRoot")
             return null
@@ -103,6 +104,7 @@ object WowClientDownloader {
     }
 
     fun updateGame(gameRoot: File, target: VersionCheckResult, onStatus: (String) -> Unit) {
+        check(!app.gamenative.BuildConfig.PLAY_STORE) { "Import updated game files using the folder picker." }
         val cdn = Cdn(
             hosts = target.remoteCdnHosts.ifEmpty { DEFAULT_CDN_HOSTS },
             path = target.remoteCdnPath.ifEmpty { DEFAULT_CDN_PATH },
@@ -129,6 +131,7 @@ object WowClientDownloader {
     }
 
     fun download(gameRoot: File, onStatus: (String) -> Unit) {
+        check(!app.gamenative.BuildConfig.PLAY_STORE) { "Import your own game installation." }
         val row = activeBuild(File(gameRoot, BUILD_INFO))
         check(row["Product"] == TARGET_PRODUCT) { "Incompatible game product: ${row["Product"]}. Expected $TARGET_PRODUCT." }
         val latest = checkVersion(gameRoot)

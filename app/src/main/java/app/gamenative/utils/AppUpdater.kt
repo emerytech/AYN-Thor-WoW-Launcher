@@ -128,6 +128,7 @@ object AppUpdater {
         currentVersion: String = BuildConfig.VERSION_NAME,
         includeBeta: Boolean = false,
     ): Release? = withContext(Dispatchers.IO) {
+        if (BuildConfig.PLAY_STORE) return@withContext null
         runCatching {
             val request = Request.Builder()
                 .url(if (includeBeta) RELEASES_LIST_URL else RELEASES_URL)
@@ -150,6 +151,7 @@ object AppUpdater {
         release: Release,
         onProgress: (Float) -> Unit,
     ): File = withContext(Dispatchers.IO) {
+        check(!BuildConfig.PLAY_STORE) { "Application updates are managed by Google Play." }
         val dir = File(context.cacheDir, "updates").apply { mkdirs() }
         val dest = File(dir, "WoW-Forever-${release.version}.apk")
         if (dest.exists() && dest.length() == release.sizeBytes && release.sizeBytes > 0) {
@@ -168,6 +170,7 @@ object AppUpdater {
     }
 
     fun openInstallPermissionSettings(context: Context) {
+        check(!BuildConfig.PLAY_STORE) { "Use Google Play for app updates." }
         runCatching {
             context.startActivity(
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
@@ -187,6 +190,7 @@ object AppUpdater {
     }
 
     fun install(context: Context, apkFile: File) {
+        check(!BuildConfig.PLAY_STORE) { "Use Google Play for app updates." }
         if (!canInstall(context)) {
             openInstallPermissionSettings(context)
             return

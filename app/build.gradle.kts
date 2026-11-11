@@ -56,6 +56,7 @@ android {
 
         manifestPlaceholders["screenOrientation"] = "unspecified"
         buildConfigField("boolean", "XR_BUILD", "false")
+        buildConfigField("boolean", "PLAY_STORE", "false")
 
         versionCode = 284
         versionName = "2.7.1-lsfg.3"
@@ -118,6 +119,19 @@ android {
         }
     }
 
+    productFlavors.create("play") {
+        dimension = "androidApi"
+        applicationId = "com.emerytech.handheldruntime"
+        minSdk = 29
+        targetSdk = 36
+        ndk.abiFilters += "arm64-v8a"
+        buildConfigField("boolean", "MODERN_ANDROID", "true")
+        buildConfigField("boolean", "PLAY_STORE", "true")
+        buildConfigField("String", "PRELOAD_BIONIC_SO", "\"libredirect-bionic-wx.so\"")
+        manifestPlaceholders["icon"] = "@drawable/play_icon"
+        manifestPlaceholders["roundIcon"] = "@drawable/play_icon"
+    }
+
     buildTypes {
         debug {
             isDebuggable = true
@@ -178,6 +192,8 @@ android {
 
     // Configure Assets to be used in different variants
     sourceSets {
+        getByName("play").assets.srcDirs("src/modern/assets", "src/main/assets")
+        getByName("play").jniLibs.srcDirs("src/modern/jniLibs", "src/main/jniLibs")
         getByName("modern") {
             assets {
                 srcDirs("src/modern/assets", "src/main/assets")

@@ -135,7 +135,7 @@ fun BootingSplash(
                 Spacer(modifier = Modifier.weight(0.4f))
 
                 Text(
-                    text = "World of Warcraft",
+                    text = if (app.gamenative.BuildConfig.PLAY_STORE) "WOW this game is FOREVER" else "World of Warcraft",
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 32.sp,

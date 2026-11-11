@@ -15,6 +15,12 @@ import java.io.File
 
 object StorageUtils {
     fun hasStoragePermission(context: Context, path: String): Boolean {
+        if (app.gamenative.BuildConfig.PLAY_STORE) {
+            val target = File(path).canonicalPath
+            return listOfNotNull(context.filesDir, context.getExternalFilesDir(null)).any {
+                target == it.canonicalPath || target.startsWith(it.canonicalPath + File.separator)
+            }
+        }
         val isInsideSandbox = path.contains("/Android/data/${context.packageName}") || path.contains(context.dataDir.path)
         if (isInsideSandbox) return true
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

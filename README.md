@@ -2,6 +2,10 @@
 
 ## Lossless Scaling and saved-login fork
 
+A separate Play distribution is being prepared on `feat/play-store`. See
+[Play preparation](docs/play-store/README.md) for build commands, store assets and
+remaining submission gates. It has not been submitted to Google Play.
+
 ![Feature tour](docs/media/thor-fork-features.gif)
 
 A 12-second feature tour combining labeled illustrations with the actual saved-login dialog.

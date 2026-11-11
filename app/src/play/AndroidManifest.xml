@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+ <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:node="remove"/>
+ <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
+ <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+ <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove"/>
+ <uses-permission android:name="android.permission.READ_LOGS" tools:node="remove"/>
+ <application android:icon="@drawable/play_icon" android:banner="@drawable/play_icon" tools:replace="android:icon,android:banner">
+  <activity-alias android:name=".MainActivityAliasDefault" android:icon="@drawable/play_icon" android:roundIcon="@drawable/play_icon" android:banner="@drawable/play_icon" android:logo="@drawable/play_icon" tools:replace="android:icon,android:roundIcon,android:banner,android:logo"/>
+ </application>
+</manifest>

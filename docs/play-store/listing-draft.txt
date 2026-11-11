@@ -1,0 +1,22 @@
+Title: WOW this game is FOREVER
+Short description: Controller-friendly launcher for your compatible ARM64 game installation.
+
+Bring your own compatible Windows ARM64 game files to an Android handheld.
+Import a complete authorized installation through Android's folder picker, configure
+controller-friendly controls and launch through the bundled runtime.
+
+Features:
+- Touch and physical controller input, including dual-screen handheld controls.
+- Optional frame generation using your own compatible Lossless.dll.
+- Optional encrypted local saved login and explicit fill/copy actions.
+- A setting to keep the game running when launcher menus are open.
+
+Game files and Lossless.dll are not included. Game access and compatibility vary.
+Importing copies the selected installation and requires additional free space.
+Uninstalling removes the imported copy and app settings. Android 10+ and ARM64 required.
+
+Unofficial community project. Not affiliated with Blizzard Entertainment,
+Lossless Scaling or the device manufacturer. This statement does not replace any
+permission required for third-party intellectual property.
+
+DRAFT: verify rights, compatibility, developer contact and privacy-policy URL before use.
