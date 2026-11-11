@@ -48,10 +48,11 @@ and backend settings. Multiplier changes in that menu persist across launches.
 The default remains Off until selected.
 
 Application updates in this fork check `emerytech/AYN-Thor-WoW-Launcher`.
-Personal debug builds retain the upstream package and fixed debug certificate so
-they can update an existing installation without clearing its game folder,
-preferences, or saved login. Keep the previous APK for rollback; never uninstall
-or clear app data as part of an update.
+Public releases use this fork's private signing key. Preserve it for future updates.
+Earlier personal/debug builds and upstream APKs use different signatures and cannot
+be updated in place with the public APK. Back up settings before migrating:
+uninstalling removes app-private settings, imported DLLs and saved login.
+Matching-signature public releases update in place; do not clear app data.
 
 Build: `tools/fetch_components.sh`, then `./gradlew assembleModernDebug`.
 Focused verification: `./gradlew testModernDebugUnitTest --tests 'app.gamenative.utils.Lsfg*Test'`.
@@ -103,7 +104,7 @@ You need a PC or Mac with World of Warcraft installed through Battle.net, and an
 
 ### 1. Install the app
 
-Download **WoWLauncher.apk** from the [releases page](https://github.com/wyattabuntjer/AYN-Thor-WoW-Launcher/releases/latest) onto your Android device and install it. If Android asks, allow installs from your browser or file manager.
+Download **WoWLauncher.apk** from the [releases page](https://github.com/emerytech/AYN-Thor-WoW-Launcher/releases) onto your Android device and install it. If Android asks, allow installs from your browser or file manager.
 
 ### 2. Get the game installed on your PC or Mac
 
