@@ -19,6 +19,12 @@ val keystoreProperties: Properties? = if (keystorePropertiesFile.exists()) {
     }
 } else null
 
+// Local-only pointers to ETS3D's existing Play upload credentials. Never commit this file.
+val playUploadPropertiesFile = rootProject.file("app/keystores/play-upload.properties")
+val playUploadProperties: Properties? = if (playUploadPropertiesFile.exists()) {
+    Properties().apply { load(FileInputStream(playUploadPropertiesFile)) }
+} else null
+
 android {
     namespace = "app.gamenative"
     compileSdk = 36
@@ -37,6 +43,14 @@ android {
                 storePassword = "android"
                 keyAlias = "androiddebugkey"
                 keyPassword = "android"
+            }
+        }
+        create("playUpload") {
+            if (playUploadProperties != null) {
+                storeFile = file(playUploadProperties["storeFile"].toString())
+                storePassword = playUploadProperties["storePassword"].toString()
+                keyAlias = playUploadProperties["keyAlias"].toString()
+                keyPassword = playUploadProperties["keyPassword"].toString()
             }
         }
         create("release") {
@@ -110,6 +124,7 @@ android {
     flavorDimensions += "androidApi"
     productFlavors {
         create("modern") {
+            signingConfig = signingConfigs.getByName(if (keystoreProperties != null) "release" else "debug")
             dimension = "androidApi"
             minSdk = 29
             targetSdk = 36
@@ -120,6 +135,7 @@ android {
     }
 
     productFlavors.create("play") {
+        signingConfig = signingConfigs.getByName("playUpload")
         dimension = "androidApi"
         applicationId = "com.emerytech.handheldruntime"
         versionCode = 285
@@ -144,7 +160,8 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName(if (keystoreProperties != null) "release" else "debug")
+            // Release signing comes from the distribution flavor; debug builds still use the debug key.
+            signingConfig = null
         }
     }
 

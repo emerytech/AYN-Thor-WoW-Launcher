@@ -6,8 +6,10 @@ Chosen listing name: **WOW this game is FOREVER**. Package: `com.emerytech.handh
 This is a separate installation from the GitHub edition and does not inherit its
 saved credentials, imported DLL or game settings.
 
-Build with `./gradlew bundlePlayRelease assemblePlayRelease`. Signing uses the
-local ignored release keystore. Never upload that keystore or its properties.
+Build with `./gradlew bundlePlayRelease assemblePlayRelease`. Signing uses `app/keystores/play-upload.properties`, a local ignored file pointing
+to ETS3D’s existing Couchside upload key and Play API service account. The private
+key stays in its existing location. Never upload the key or its properties.
+The `modern` distribution keeps the separate GitHub-release signing key.
 The GitHub edition remains the `modern` flavor; do not upload that APK to Play.
 
 ## Implemented distribution differences
