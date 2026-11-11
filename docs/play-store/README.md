@@ -24,14 +24,17 @@ The GitHub edition remains the `modern` flavor; do not upload that APK to Play.
 - No all-files access, legacy shared-storage permissions, APK installation permission or READ_LOGS.
 - GitHub app updater disabled at its entry points. Automatic game version checks/downloads disabled.
   Users import complete authorized files and updated installations themselves.
-- Runtime components are packaged with the app, not fetched by the launcher during setup.
+- Some runtime components are packaged. Physical first launch exposed an additional
+  `imagefs_bionic.txz` download through `PluviaMain.preLaunchApp`, and modern component
+  downloaders also require an audit. Complete Play delivery of executable runtime
+  components before submission; the current AAB is not ready to submit.
 - Lossless.dll is user-selected through the picker. Broad-storage convenience lookup is hidden.
 - Unique application ID and package-relative runtime paths.
 
 ## Submission gates (not yet a Play submission)
 
 1. Initial launch and scoped dummy-folder import passed on an Android 15 ARM64 emulator with PAGE_SIZE=16384. Full game/rendering execution on a compatible 16 KB device remains unverified.
-2. Exercise import, first launch, sign-in, saved-login fill, controller input and large installs on a physical device.
+2. A real 49 GB folder import passed on the Thor, with the original folder retained and zero `login.txt` files copied. First launch, sign-in, saved-login fill and controller input still need full acceptance.
 3. Resolve rights/branding for the chosen name, compatibility wording and all bundled assets/components.
    The chosen name deliberately references the existing game. An original icon does not establish permission.
 4. Review native Wine/game execution against Play executable-code policy; the interpreter exception must not be assumed to cover this runtime.
